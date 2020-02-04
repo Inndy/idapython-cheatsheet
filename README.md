@@ -1,3 +1,7 @@
+## Useful Enumeration Functions
+
+Check this: https://github.com/nlitsme/idascripts/blob/master/enumerators.py
+
 ## Get Current Function Range
 
 ``` python
@@ -66,4 +70,29 @@ def tryMakeName(addr, name, i=0, suffix=''):
         n = '%s_%d' % (name, i)
         i += 1
     MakeName(addr, n)
+```
+
+## Remove Disassembler Trap
+
+**This script requires function from https://github.com/nlitsme/idascripts/blob/master/enumerators.py**
+
+Replace following patterns with nop
+
+```
+jz $+3
+jnz $+1
+.db 0xe9 ; 0xe8
+```
+
+``` python
+op_pairs = [ (0x70, 0x71), (0x72, 0x73), (0x74, 0x75), (0x76, 0x77), (0x78, 0x79), (0x7a, 0x7b), (0x7c, 0x7d), (0x7e, 0x7f) ]
+for pair in op_pairs:
+    patterns = [
+        "%.2x 03 %.2x 01 %.2x" % (a, b, c)
+        for (a, b) in [ pair, pair[::-1] ]
+        for c in (0xe8, 0xe9)
+    ]
+    for p in patterns:
+        for ea in Binaries((FirstSeg(), BADADDR), p):
+            PatchDword(ea, 0x90909090); PatchByte(ea + 4, 0x90)
 ```
